@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask
+from flask import Flask, abort, g, request
 
 
 def create_app():
@@ -21,5 +21,9 @@ def create_app():
     from .routes import bp
 
     app.register_blueprint(bp)
+
+    from . import auth
+
+    app.register_blueprint(auth.auth_bp)
 
     return app

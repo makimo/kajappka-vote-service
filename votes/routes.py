@@ -1,21 +1,27 @@
 import os
 from datetime import datetime
 
-from flask import Blueprint, jsonify
+from flask import abort, Blueprint, jsonify, request
 
-from .votes import VotesRepository
+from .auth import AuthenticationError, get_user_id
+from .repository import VotesRepository
 
 bp = Blueprint('votes', __name__, url_prefix='/')
 
 
 @bp.route('/<string:date>', methods=['GET'])
 def get_votes(date: str):
-    repository = VotesRepository()
-    votes_count = repository.count_votes(date)
-    user_votes = repository.get_user_votes(date, 1)
-    response = _create_votes_count_response(votes_count, user_votes)
+    try:
+        user_id = get_user_id(request)
 
-    return jsonify(response)
+        repository = VotesRepository()
+        votes_count = repository.count_votes(date)
+        user_votes = repository.get_user_votes(date, user_id)
+        response = _create_votes_count_response(votes_count, user_votes)
+
+        return jsonify(response)
+    except AuthenticationError:
+        abort(403)
 
 
 def _create_votes_count_response(votes_count: list, user_votes: set):
