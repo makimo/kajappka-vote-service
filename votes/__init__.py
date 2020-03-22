@@ -16,6 +16,8 @@ def create_app():
     except OSError:
         pass
 
+    from . import database
+
     from .routes import bp
 
     app.register_blueprint(bp)
