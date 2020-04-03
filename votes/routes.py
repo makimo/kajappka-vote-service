@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 from flask import abort, Blueprint, jsonify, request
+import inject # type: ignore
 
 from .auth import AuthenticationError, get_user_id
 from .repository import VotesRepository
@@ -10,11 +11,11 @@ bp = Blueprint('votes', __name__, url_prefix='/')
 
 
 @bp.route('/<string:date>', methods=['GET'])
-def get_votes(date: str):
+@inject.autoparams()
+def get_votes(repository: VotesRepository, date: str):
     try:
         user_id = get_user_id(request)
 
-        repository = VotesRepository()
         votes_count = repository.count_votes(date)
         user_votes = repository.get_user_votes(date, user_id)
         response = _create_votes_count_response(votes_count, user_votes)

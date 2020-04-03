@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, abort, g, request
+from flask import Flask
 
 
 def create_app():
@@ -17,6 +17,7 @@ def create_app():
         pass
 
     from . import database
+    from . import di
 
     from .routes import bp
 
