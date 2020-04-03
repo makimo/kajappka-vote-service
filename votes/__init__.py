@@ -16,8 +16,15 @@ def create_app():
     except OSError:
         pass
 
+    from . import database
+    from . import di
+
     from .routes import bp
 
     app.register_blueprint(bp)
+
+    from . import auth
+
+    app.register_blueprint(auth.auth_bp)
 
     return app

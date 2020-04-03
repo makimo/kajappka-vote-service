@@ -6,6 +6,8 @@ networks:
 services:
   db:
     image: mongo:latest
+    networks:
+      - votes
     environment:
       MONGO_INITDB_ROOT_USERNAME: votes
       MONGO_INITDB_ROOT_PASSWORD: secret
@@ -15,6 +17,9 @@ services:
     build:
       context: ../..
       dockerfile: docker/development/Dockerfile
+    environment:
+      DATABASE_URI: mongodb://votes:secret@db
+      AUTH_URL: http://localhost:8000/mock-auth/token-response
     volumes:
       - "../..:/app"
       - "votes-web-packages:/usr/local/lib/python3.8/site-packages"
