@@ -2,6 +2,9 @@ from .database import votes_coll
 
 
 class VotesRepository:
+    # XXX: Move to settings?
+    VOTE_LIMIT = 3
+
     def get_votes_by_date(self, date: str):
         return votes_coll.find({'date': date})
 
@@ -29,3 +32,29 @@ class VotesRepository:
     def delete_vote(self, user_id: int, game_id: str, date: str) -> None:
         query = {"user_id": user_id, "game_id": game_id, "date": date}
         votes_coll.delete_one(query)
+
+    def is_votes_limit_reached(self, date: str, user_id: int):
+        voutes_count = len(votes_coll.find({
+            'user_id': user_id,
+            'date': date
+        }).distinct('game_id'))
+
+        return  voutes_count >= self.VOTE_LIMIT
+
+    def already_vote(self, user_id: int, date: str, game_id: str):
+        return votes_coll.find_one({
+            'user_id': user_id,
+            'game_id': game_id,
+            'date': date
+        }) != None
+
+    def vote(self, user_id: int, date: str, game_id: str):
+        obj = {
+            'user_id': user_id,
+            'game_id': game_id,
+            'date': date
+        }
+
+        votes_coll.insert_one(obj)
+
+        return obj
