@@ -66,6 +66,23 @@ def _create_votes_count_response(votes_count: list, user_votes: set):
     return response
 
 
+@bp.route('/<string:date>', methods=['DELETE'])
+@inject.autoparams()
+def delete_vote(repository: VotesRepository, date: str):
+    try:
+        user_id = get_user_id(request)
+        game_id = request.json.get('game_id')
+
+        if not repository.already_vote(user_id, date, game_id):
+            return _bad_request_response(
+                message=f"Vote doesn't exists. Did you vote for the game at {date}?")
+
+        repository.delete_vote(user_id, game_id, date)
+        return '', 204
+    except AuthenticationError:
+        abort(403)
+
+
 def _bad_request_response(**data):
     return make_response(jsonify(**data), 400)
 
