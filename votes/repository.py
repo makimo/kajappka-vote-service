@@ -25,3 +25,7 @@ class VotesRepository:
                 user_votes.add(vote['game_id'])
 
         return user_votes
+
+    def delete_vote(self, user_id: int, game_id: str, date: str) -> None:
+        query = {"user_id": user_id, "game_id": game_id, "date": date}
+        votes_coll.delete_one(query)
