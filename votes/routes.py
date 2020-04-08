@@ -1,13 +1,41 @@
 import os
 from datetime import datetime
 
-from flask import abort, Blueprint, jsonify, request
+from flask import abort, Blueprint, jsonify, request, make_response
 import inject # type: ignore
 
 from .auth import AuthenticationError, get_user_id
 from .repository import VotesRepository
 
 bp = Blueprint('votes', __name__, url_prefix='/')
+
+
+# XXX: Validate date format
+@bp.route('/<string:date>', methods=['POST'])
+@inject.autoparams()
+def vote(repository: VotesRepository, date: str):
+    try:
+        user_id = get_user_id(request)
+        game_id = request.json.get('game_id')
+
+        is_valid, msg = _is_valid_game_id(game_id)
+
+        if not is_valid:
+            return _bad_request_response(message=msg)
+
+        if repository.already_vote(user_id, date, game_id):
+            return _bad_request_response(message='User already voted for this game')
+
+        if repository.is_votes_limit_reached(date, user_id):
+            return _bad_request_response(message='Limit of votes already reached')
+
+        vote_obj = repository.vote(user_id, date, game_id)
+        # Remove internal id from dict to reponse
+        vote_obj.pop('_id')
+
+        return jsonify(vote_obj)
+    except AuthenticationError:
+        abort(403)
 
 
 @bp.route('/<string:date>', methods=['GET'])
@@ -36,3 +64,16 @@ def _create_votes_count_response(votes_count: list, user_votes: set):
         })
 
     return response
+
+
+def _bad_request_response(**data):
+    return make_response(jsonify(**data), 400)
+
+
+def _is_valid_game_id(game_id):
+    if not game_id:
+        return False, 'game_id is required'
+
+    # TODO: check if game_id exists
+
+    return True, ''
