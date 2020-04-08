@@ -20,6 +20,7 @@ services:
     environment:
       DATABASE_URI: mongodb://votes:secret@db
       AUTH_URL: http://localhost:8000/mock-auth/token-response
+      DATABASE: votes
     volumes:
       - "../..:/app"
       - "votes-web-packages:/usr/local/lib/python3.8/site-packages"
